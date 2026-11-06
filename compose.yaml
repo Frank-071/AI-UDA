@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: workdoc
       POSTGRES_USER: workdoc
-      POSTGRES_PASSWORD: workdoc
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.local}
     ports:
       - "55432:5432"
     volumes:

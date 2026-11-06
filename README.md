@@ -22,12 +22,12 @@ Aplicación web para planificar jornadas y consultar el rendimiento agregado del
    Copy-Item .env.example .env.local
    ```
 
-   Edita `.env.local`: define `JWT_SECRET` con al menos 32 caracteres aleatorios y establece `ADMIN_EMAIL`, `ADMIN_NAME` y `ADMIN_PASSWORD` (mínimo 12 caracteres). Los valores del ejemplo son solo para pruebas locales. Si usas otro PostgreSQL, ajusta `DATABASE_URL`.
+   Edita `.env.local`: establece `POSTGRES_PASSWORD` y utiliza la misma contraseña en `DATABASE_URL`; si contiene caracteres especiales, codifícalos para una URL. Define `JWT_SECRET` con al menos 32 caracteres aleatorios y establece `ADMIN_EMAIL`, `ADMIN_NAME` y `ADMIN_PASSWORD` (mínimo 12 caracteres). Los valores REEMPLAZAR son marcadores que debes cambiar. Si usas otro PostgreSQL, ajusta `DATABASE_URL`.
 
 3. Inicia PostgreSQL. Con Docker Desktop abierto:
 
    ```powershell
-   docker compose up -d
+   docker compose --env-file .env.local up -d
    ```
 
    Alternativamente crea una base PostgreSQL y actualiza `DATABASE_URL` con sus credenciales. El contenedor de ejemplo expone el puerto 55432 y conserva los datos en un volumen.
@@ -39,7 +39,7 @@ Aplicación web para planificar jornadas y consultar el rendimiento agregado del
    npm.cmd run db:init
    ```
 
-   El script es repetible: si el correo ya existe, no cambia su contraseña ni su rol. El esquema SQL está en `db/schema.sql`.
+   El script es repetible: si el correo ya existe, no cambia su contraseña ni su rol. El esquema SQL está en `backend/db/schema.sql`.
 
 5. Inicia la aplicación:
 
@@ -47,16 +47,12 @@ Aplicación web para planificar jornadas y consultar el rendimiento agregado del
    npm.cmd run dev
    ```
 
-   Abre http://localhost:3000. **El frontend y el backend se ejecutan juntos** en el mismo proceso Next.js; no hace falta iniciar otro servidor. Mantén esta terminal abierta. Para detenerlo presiona `Ctrl+C`; para detener PostgreSQL usa `docker compose stop`.
+   Abre http://localhost:3000. **El frontend y el backend se ejecutan juntos** en el mismo proceso Next.js; no hace falta iniciar otro servidor. Mantén esta terminal abierta. Para detenerlo presiona `Ctrl+C`; para detener PostgreSQL usa `docker compose --env-file .env.local stop`.
 
 ## Instalación local preparada en este equipo
 
-La base de datos local utiliza el puerto `55432` y la aplicación se abre en http://localhost:3000. Se crearon estas cuentas exclusivamente para pruebas en este equipo:
+La base de datos local utiliza el puerto `55432` y la aplicación se abre en http://localhost:3000. Las credenciales del administrador se configuran en `.env.local`. No subas ese archivo al repositorio. Para arrancar, abre Docker Desktop y ejecuta los comandos de preparación anteriores.
 
-- Administrador: `admin@workdoc.local` / `WorkDocLocal2026!`
-- Compañero: `prueba@workdoc.local` / `WorkDocPrueba2026!`
-
-La cuenta de prueba contiene una actividad de ejemplo. Estas contraseñas son solo para pruebas locales; no las uses en producción. Para volver a iniciar el sistema, abre Docker Desktop, ejecuta `docker compose up -d` y luego `npm.cmd run dev` en esta carpeta. También puedes ejecutar la tarea de VS Code «WorkDoc: iniciar aplicación» después de iniciar PostgreSQL.
 ## Prueba funcional
 
 1. Inicia sesión con el administrador configurado en `.env.local`.
@@ -83,26 +79,28 @@ Crea `.env.production` con `DATABASE_URL` apuntando a un PostgreSQL accesible de
 
 Para producción, utiliza PostgreSQL gestionado con cifrado y respaldos, secretos administrados, HTTPS, controles de red, registros y límites de intentos de inicio de sesión. El ejemplo local no configura estas capacidades de infraestructura. La aplicación está preparada como base para evolucionar; no implementa aislamiento entre organizaciones, recuperación de contraseña ni edición simultánea con control de versiones. Guardar una jornada reemplaza la copia anterior de ese usuario y fecha; evita editarla en varias pestañas a la vez.
 
-## Estructura
+## Organización del proyecto
 
 ```text
-app/
-  api/activities/route.js          API privada de jornadas
-  api/admin/route.js               Métricas y usuarios para administradores
-  api/admin/users/route.js         Creación de usuarios
-  api/admin/users/[id]/route.js    Activación y desactivación
-  api/auth/login/route.js          Inicio de sesión
-  api/auth/logout/route.js         Cierre de sesión
-  globals.css                      Estilos globales
-  layout.js                        Estructura HTML
-  page.js                          Carga de sesión en servidor
-  workdoc.js                       Interfaz de los tres paneles
-lib/auth.js                        Sesiones y autorización
-lib/db.js                          Conexión PostgreSQL
-db/schema.sql                      Esquema de la base de datos
-db/init.js                         Inicialización y primer administrador
-compose.yaml                       PostgreSQL para desarrollo
-Dockerfile                         Imagen de producción
-.env.example                       Variables de entorno de ejemplo
+frontend/                       Interfaz de usuario y estilos
+  layout.js                     Estructura HTML
+  page.js                       Página principal y carga de sesión
+  workdoc.js                    Login y paneles por rol
+  globals.css                   Estilos
+backend/                        Código que se ejecuta en el servidor
+  api/                          Implementación de rutas de autenticación, actividades y administración
+  lib/auth.js                   Sesiones y autorización
+  lib/db.js                     Conexión PostgreSQL
+  db/schema.sql                 Esquema de la base de datos
+  db/init.js                    Inicialización y primer administrador
+app/                            Puntos de entrada requeridos por Next.js
+  api/                          Rutas que delegan al código de backend/api
+compose.yaml                    PostgreSQL para desarrollo
+Dockerfile                      Imagen de producción
+.env.example                    Variables de entorno de ejemplo
 ```
 
+Next.js ejecuta el frontend y el backend en un mismo servidor y puerto. La carpeta `app` contiene únicamente los archivos de enrutamiento que exige Next.js; la lógica del backend está en `backend`. La carpeta `.next` se genera automáticamente al ejecutar o compilar, y `node_modules` contiene las dependencias instaladas.
+## Evitar subir contraseñas a Git
+
+Guarda las contraseñas y claves reales en `.env.local`; este archivo y otros `.env.*` están ignorados. `.env.example` solo contiene marcadores y se puede subir. `compose.yaml` obtiene la contraseña de `.env.local` y no debe contener contraseñas reales. Antes de cada commit revisa `git status` y `git diff --cached`; no pegues secretos en el historial ni en capturas. Si una contraseña ya se subió, cambiar el archivo o añadirlo a `.gitignore` no elimina los commits anteriores: rota la contraseña o clave y revisa el historial y las alertas del servicio.
