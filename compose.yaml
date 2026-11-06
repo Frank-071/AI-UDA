@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: workdoc
+      POSTGRES_USER: workdoc
+      POSTGRES_PASSWORD: workdoc
+    ports:
+      - "55432:5432"
+    volumes:
+      - workdoc_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workdoc -d workdoc"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  workdoc_data:
