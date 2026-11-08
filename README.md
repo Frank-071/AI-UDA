@@ -104,3 +104,14 @@ Next.js ejecuta el frontend y el backend en un mismo servidor y puerto. La carpe
 ## Evitar subir contraseñas a Git
 
 Guarda las contraseñas y claves reales en `.env.local`; este archivo y otros `.env.*` están ignorados. `.env.example` solo contiene marcadores y se puede subir. `compose.yaml` obtiene la contraseña de `.env.local` y no debe contener contraseñas reales. Antes de cada commit revisa `git status` y `git diff --cached`; no pegues secretos en el historial ni en capturas. Si una contraseña ya se subió, cambiar el archivo o añadirlo a `.gitignore` no elimina los commits anteriores: rota la contraseña o clave y revisa el historial y las alertas del servicio.
+
+PARA EJECUTAR:
+
+- Primero se ejecuta para levantar el PostgreSQL: 
+   docker compose --env-file .env.local up -d
+- Segundo se ejecuta para levantar el .env.local:
+   for /f "usebackq tokens=1,* delims==" %A in (".env.local") do @set "%A=%B"
+- Luego el siguiente comando:
+   npm.cmd run db:init
+- Y por último el front:
+   npm.cmd run dev
