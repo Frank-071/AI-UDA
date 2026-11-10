@@ -18,6 +18,8 @@ ENV PORT=3000
 RUN addgroup -S workdoc && adduser -S workdoc -G workdoc
 COPY --from=build --chown=workdoc:workdoc /app/.next/standalone ./
 COPY --from=build --chown=workdoc:workdoc /app/.next/static ./.next/static
+COPY --from=dependencies --chown=workdoc:workdoc /app/node_modules ./node_modules
+COPY --from=build --chown=workdoc:workdoc /app/backend/db ./backend/db
 USER workdoc
 EXPOSE 3000
 CMD ["node", "server.js"]

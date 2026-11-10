@@ -79,6 +79,10 @@ Crea `.env.production` con `DATABASE_URL` apuntando a un PostgreSQL accesible de
 
 Para producción, utiliza PostgreSQL gestionado con cifrado y respaldos, secretos administrados, HTTPS, controles de red, registros y límites de intentos de inicio de sesión. El ejemplo local no configura estas capacidades de infraestructura. La aplicación está preparada como base para evolucionar; no implementa aislamiento entre organizaciones, recuperación de contraseña ni edición simultánea con control de versiones. Guardar una jornada reemplaza la copia anterior de ese usuario y fecha; evita editarla en varias pestañas a la vez.
 
+## Despliegue pequeño en Amazon EC2
+
+Para ejecutar la aplicación y PostgreSQL en una sola instancia, sigue la guía de `deploy/ec2/README.md`. La configuración de EC2 conserva la base de datos en un volumen, inicializa el esquema automáticamente y comprueba el servicio mediante `/api/health`.
+
 ## Organización del proyecto
 
 ```text

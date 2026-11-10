@@ -1,0 +1,9 @@
+# Copia este archivo como deploy/ec2/deploy.config.
+# Usa una ruta compatible con el entorno desde el que ejecutaras deploy.sh:
+#   Git Bash: /c/Users/tu_usuario/Downloads/municipalidad.pem
+#   WSL:      /mnt/c/Users/tu_usuario/Downloads/municipalidad.pem
+EC2_HOST=100.58.151.158
+EC2_USER=ubuntu
+EC2_PORT=22
+EC2_KEY_PATH=/c/Users/frank/Downloads/municipalidad.pem
+REMOTE_DIR=/home/ubuntu/workdoc
